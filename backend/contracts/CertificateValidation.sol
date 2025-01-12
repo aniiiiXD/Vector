@@ -8,7 +8,6 @@ contract CertificateValidation {
         string recipient;
         uint256 timestamp;
         bytes32 certificateHash;
-        string ipfsHash; 
         bool revoked; 
     }
 
@@ -17,7 +16,7 @@ contract CertificateValidation {
 
     mapping(address => bool) public issuers;
 
-    event CertificateIssued(bytes32 indexed certificateHash, string issuer, string recipient, uint256 timestamp, string ipfsHash);
+    event CertificateIssued(bytes32 indexed certificateHash, string issuer, string recipient, uint256 timestamp);
     event CertificateRevoked(bytes32 indexed certificateHash);
     event IssuerAdded(address indexed issuer);
     event IssuerRemoved(address indexed issuer);
@@ -50,8 +49,7 @@ contract CertificateValidation {
     function issueCertificate(
         string memory issuer,
         string memory recipient,
-        bytes32 certificateHash,
-        string memory ipfsHash
+        bytes32 certificateHash
     ) public onlyIssuer {
         require(certificates[certificateHash].timestamp == 0, "Certificate already exists");
 
@@ -60,24 +58,21 @@ contract CertificateValidation {
             recipient: recipient,
             timestamp: block.timestamp,
             certificateHash: certificateHash,
-            ipfsHash: ipfsHash,
             revoked: false
         });
 
-        emit CertificateIssued(certificateHash, issuer, recipient, block.timestamp, ipfsHash);
+        emit CertificateIssued(certificateHash, issuer, recipient, block.timestamp);
     }
 
     // Issue multiple certificates in a batch
     function issueBatchCertificates(
         string[] memory issuersList,
         string[] memory recipients,
-        bytes32[] memory certificateHashes,
-        string[] memory ipfsHashes
+        bytes32[] memory certificateHashes
     ) public onlyIssuer {
         require(
             issuersList.length == recipients.length &&
-            recipients.length == certificateHashes.length &&
-            certificateHashes.length == ipfsHashes.length,
+            recipients.length == certificateHashes.length,
             "Input arrays must have the same length"
         );
 
@@ -89,11 +84,10 @@ contract CertificateValidation {
                 recipient: recipients[i],
                 timestamp: block.timestamp,
                 certificateHash: certificateHashes[i],
-                ipfsHash: ipfsHashes[i],
                 revoked: false
             });
 
-            emit CertificateIssued(certificateHashes[i], issuersList[i], recipients[i], block.timestamp, ipfsHashes[i]);
+            emit CertificateIssued(certificateHashes[i], issuersList[i], recipients[i], block.timestamp);
         }
     }
 
@@ -102,12 +96,11 @@ contract CertificateValidation {
         string memory issuer,
         string memory recipient,
         uint256 timestamp,
-        string memory ipfsHash,
         bool revoked
     ) {
         Certificate memory cert = certificates[certificateHash];
         require(cert.timestamp != 0, "Certificate does not exist");
-        return (cert.issuer, cert.recipient, cert.timestamp, cert.ipfsHash, cert.revoked);
+        return (cert.issuer, cert.recipient, cert.timestamp, cert.revoked);
     }
 
     // Revoke a certificate
