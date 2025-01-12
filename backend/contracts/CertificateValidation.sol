@@ -118,4 +118,4 @@ contract CertificateValidation {
         certificates[certificateHash].revoked = true;
         emit CertificateRevoked(certificateHash);
     }
-}
+} 
